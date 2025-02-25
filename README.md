@@ -1,5 +1,5 @@
 # Caesar-Microservice
-Python icroservice with a modified caesar encryption using ZeroMQ.
+Python microservice with a modified caesar encryption using ZeroMQ.
 
 The caesar.py file will take in a JSON message containing an input string (to encrypt) as well as a cipher string. It will then perform a caesar-style encryption by shifting letters in the input string to the right, but iterates over the cipher string to do so. For example, sending "HELLO" with the cipher "abc" will shift H by 1 (a), E by 2 (b), the first L by 3 (c), the second L by 1 (back to a), and the O by 2 (b). Input string letter case is maintained and non-letters are returned as they were.
 
@@ -11,6 +11,4 @@ Receiving data is automatic. Once the caesar encryption is complete the output e
 
 Below is a UML diagram for this microservice.
 
-######
-UML GO HERE
-######
+!(https://github.com/camhurley/Caesar-Microservice/blob/main/uml.jpg)
