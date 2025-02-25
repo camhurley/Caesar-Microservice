@@ -10,5 +10,4 @@ To send data, run caesar.py first. It will say that it is waiting to receive dat
 Receiving data is automatic. Once the caesar encryption is complete the output encrypted string will be sent back over ZeroMQ where the main program is waiting to receive it with the receive_response() function.
 
 Below is a UML diagram for this microservice.
-
-!(https://github.com/camhurley/Caesar-Microservice/blob/main/uml.jpg)
+![UML Diagram](uml.jpg)
