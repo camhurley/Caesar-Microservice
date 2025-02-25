@@ -1,45 +1,65 @@
 import zmq
 import json
 
-def main():
+
+def send_request(socket, input_string, cipher):
     """
-    Test program. Sends string & cipher, gets back encrypted string, over ZMQ
+    Prepares and sends a JSON request containing the input string and cipher.
     """
 
-    # Setting up ZMQ
-    context = zmq.Context()
-    socket = context.socket(zmq.REQ)
-    socket.connect("tcp://localhost:4949")  # Matching port to caesar.py. Feel free to change
-
-    input("Press ENTER to send string & cipher.")
-
-    # Create a test message containing the input string and cipher.
-    data = {
-        'input_string': "Hello, world!",
-        'cipher': "abC"
+    # Create a JSON payload with the input string and cipher.
+    payload = {
+        "input_string": input_string,
+        "cipher": cipher
     }
 
-    # Sanity check message. Are we sending what we want to send?
-    string_sent = data['input_string']
-    cipher_sent = data['cipher']
-    print(f"Sent string '{string_sent}' for encryption with cipher '{cipher_sent}'.")
+    # Send the JSON-encoded message to the server.
+    socket.send_string(json.dumps(payload))
+    print("Request sent.")
 
-    # Send the JSON message
-    socket.send_string(json.dumps(data))
 
-    # Wait for reply from caesar
+def receive_response(socket):
+    """
+    Receives and decodes the JSON response from the microservice.
+    """
+
+    # Wait for the reply from the server
     reply = socket.recv()
+
+    # Decode the JSON string
     response = json.loads(reply.decode('utf-8'))
+    return response
 
-    # Check and print the response. Variable name "result" IS IMPORTANT, make sure
-    # you match it in the caesar.py if changed.
 
+def main():
+
+    # Prompt user for inputs
+    input_string = input("Type in what you wish to encrypt, then press Enter: ")
+    cipher = input("Type in the cipher string, then press Enter: ")
+
+    # Setup ZMQ
+    context = zmq.Context()
+    socket = context.socket(zmq.REQ)
+    socket.connect("tcp://localhost:4949")  # Port 4949 again
+
+    # Send the request
+    send_request(socket, input_string, cipher)
+
+    # Receive response
+    response = receive_response(socket)
+
+    # Check and print the response.
     if 'result' in response:
-        print("Encrypted message:", response['result'])
+        print("Encrypted message received:", response['result'])
     else:
         print("Error:", response.get('error', 'Unknown error'))
 
-    input("Press ENTER to close.")
+
+    # ZMQ cleanup
+    socket.close()
+    context.term()
+
+    input("Press Enter to close.")
 
 if __name__ == '__main__':
     main()

@@ -78,6 +78,7 @@ def main():
             encrypted_string = caesar(input_string, cipher_str)
             print(f"Encryption complete. Sending {encrypted_string}")
             output = {"result": encrypted_string}
+            input("Sent. Press Enter to close.")
 
         # Error in pulling in data
         except Exception as e:
@@ -85,6 +86,11 @@ def main():
 
         # Send the encrypted string back to the client.
         socket.send_string(json.dumps(output))
+
+        # ZMQ cleanup
+        socket.close()
+        context.term()
+
 
 if __name__ == '__main__':
     main()
