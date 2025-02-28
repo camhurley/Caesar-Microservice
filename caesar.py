@@ -1,12 +1,10 @@
 import zmq  # ZeroMQ for cross-file comms
-import json  # JSON will handle the two inputs we need
-
 
 
 def caesar(input_string, cipher):
     """
     Applies a caesar cipher, modified to use a cipher string (ex. the cipher is
-    'abc' so the first letter shifts by 1 for a, 2nd letter by 2 for b...)
+    'abc' so the first letter shifts by 1 for 'a', 2nd letter by 2 for b...)
     :param input_string: Unencrypted string.
     :param cipher: Cipher string.
     :return: Encrypted string.
@@ -21,7 +19,7 @@ def caesar(input_string, cipher):
     # Iterate over the unencrypted string. Thank god for the ord() function
     for char in input_string:
 
-        # Accounting for spaces, punctuation, etc which will NOT change
+        # Accounting for spaces, punctuation, etc. which will NOT change
         if char.isalpha():
             current_shift_char = cipher[cipher_index % cipher_length]
             shift = ord(current_shift_char.lower()) - ord('a') + 1
@@ -36,15 +34,16 @@ def caesar(input_string, cipher):
             # Apply the shift to the input string. Thanks to wikipedia.org/wiki/Caesar_cipher
             # The mod operator in shifted handles wraparound (like Z shifting "right" back to A...)
             shifted = (ord(char) - case + shift) % 26 + case
-            output += chr(shifted) # Put in the output array
+            output += chr(shifted)  # Put in the output array
             cipher_index += 1  # Move to the next cipher character for the next letter
 
-        # Character is NOT a letter so it should go back in as it is.
+        # Character is NOT a letter, so it should go back in as it is.
         else:
             # Non-letters added back in as they are.
             output += char
 
     return output
+
 
 def main():
     """
@@ -62,34 +61,35 @@ def main():
 
     while True:
 
-        # Wait for the next request from the client.
-        message = socket.recv()
-        print("Message received")  # DEBUG
+        # Wait for the input string from the client.
+        input_string = socket.recv().decode('utf-8')
+        print(f"Input string received: {input_string}")  # DEBUG
+
+        # Send null string for ZMQ req/rep
+        socket.send_string("DUMMY")
+        print("Waiting for cipher...")
+
+        # Wait for the cipher key from the client
+        cipher_str = socket.recv().decode('utf-8')
+        print(f"Cipher string received: {cipher_str}")  # DEBUG
 
         try:
-            # Expecting a JSON message with 'input_string' and 'cipher'.
-            # If the JSON message vars are different be sure to update them here.
-            data = json.loads(message.decode('utf-8'))
-            input_string = data['input_string']
-            cipher_str = data['cipher']
-
             # Encrypt the message using the caesar cipher.
             print("Running encryption...")  # DEBUG
             encrypted_string = caesar(input_string, cipher_str)
+            output = encrypted_string
             print(f"Encryption complete. Sending {encrypted_string}")
-            output = {"result": encrypted_string}
-            input("Sent. Press Enter to close.")
 
         # Error in pulling in data
         except Exception as e:
-            output = {"error": str(e)}
+            output = f"Error: {e}"
 
         # Send the encrypted string back to the client.
-        socket.send_string(json.dumps(output))
+        socket.send_string(output)
 
-        # ZMQ cleanup
-        socket.close()
-        context.term()
+        # Sent success message, prompt to close
+        input("Encrypted message sent. Press Enter to close.")
+        raise SystemExit
 
 
 if __name__ == '__main__':
